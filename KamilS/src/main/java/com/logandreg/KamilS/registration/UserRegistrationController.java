@@ -1,10 +1,7 @@
 package com.logandreg.KamilS.registration;
 
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = "api/v1/registration")
@@ -16,5 +13,10 @@ public class UserRegistrationController {
     @PostMapping
     public String register(@RequestBody UserRegistrationRequest request){
         return userRegistrationService.register(request);
+    }
+
+    @GetMapping(path = "confirm")
+    public String confirm(@RequestParam ("token") String token) {
+        return userRegistrationService.confirmToken(token);
     }
 }
