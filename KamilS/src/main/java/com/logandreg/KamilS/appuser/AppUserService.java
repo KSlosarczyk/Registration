@@ -1,10 +1,15 @@
 package com.logandreg.KamilS.appuser;
 
+import com.logandreg.KamilS.registration.token.Token;
+import com.logandreg.KamilS.registration.token.TokenService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 public class AppUserService implements UserDetailsService {
@@ -12,13 +17,14 @@ public class AppUserService implements UserDetailsService {
     private final static String USER_NOT_FOUND = "User with email %s not found";
     private final AppUserRepository appUserRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final TokenService tokenService;
 
-    public AppUserService(AppUserRepository appUserRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public AppUserService(AppUserRepository appUserRepository, BCryptPasswordEncoder bCryptPasswordEncoder, TokenService tokenService) {
         this.appUserRepository = appUserRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.tokenService = tokenService;
     }
 
-    //find a user
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return appUserRepository.findByEmail(email)
@@ -35,8 +41,15 @@ public class AppUserService implements UserDetailsService {
         appUser.setPassword(encodedPassword);
         appUserRepository.save(appUser);
 
-        //TODO: Send confirm token to user
+        String token = UUID.randomUUID().toString();
 
-        return "It's working!";
+        Token confirmationToken = new Token(
+                token,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusMinutes(15),
+                appUser
+        );
+        tokenService.saveToken(confirmationToken);
+        return token;
     }
 }
